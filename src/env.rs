@@ -1,4 +1,4 @@
-use wasmer::{Function, HostEnvInitError, Instance, LazyInit, Memory, WasmerEnv};
+use wasmer::{Function, HostEnvInitError, Instance, LazyInit, Memory, WasmerEnv, ExportError};
 
 #[derive(Clone, Default)]
 pub struct Env {
@@ -35,24 +35,27 @@ impl Env {
 
 impl WasmerEnv for Env {
     fn init_with_instance(&mut self, instance: &Instance) -> Result<(), HostEnvInitError> {
-        let mem = instance
+        let mem: Memory = instance
             .exports
-            .get_memory("memory")
-            .map_err(HostEnvInitError::from)?
-            .clone();
-        if let Ok(func) = instance.exports.get_function("__new") {
+            .get_with_generics_weak("memory")
+            .map_err(HostEnvInitError::from)?;
+        let new: Result<Function, ExportError> = instance.exports.get_with_generics_weak("__new");
+        let pin: Result<Function, ExportError> = instance.exports.get_with_generics_weak("__pin");
+        let unpin: Result<Function, ExportError> = instance.exports.get_with_generics_weak("__unpin");
+        let collect: Result<Function, ExportError> = instance.exports.get_with_generics_weak("__collect");
+        if let Ok(func) = new {
             self.fn_new = Some(func.clone())
         }
-        if let Ok(func) = instance.exports.get_function("__pin") {
+        if let Ok(func) = pin {
             self.fn_pin = Some(func.clone())
         }
-        if let Ok(func) = instance.exports.get_function("__unpin") {
+        if let Ok(func) = unpin {
             self.fn_unpin = Some(func.clone())
         }
-        if let Ok(func) = instance.exports.get_function("__collect") {
+        if let Ok(func) = collect {
             self.fn_collect = Some(func.clone())
         }
-        self.memory.initialize(mem);
+        self.memory.initialize(mem.clone());
         Ok(())
     }
 }
