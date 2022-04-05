@@ -44,18 +44,18 @@ impl WasmerEnv for Env {
         let unpin: Result<Function, ExportError> = instance.exports.get_with_generics_weak("__unpin");
         let collect: Result<Function, ExportError> = instance.exports.get_with_generics_weak("__collect");
         if let Ok(func) = new {
-            self.fn_new = Some(func.clone())
+            self.fn_new = Some(func)
         }
         if let Ok(func) = pin {
-            self.fn_pin = Some(func.clone())
+            self.fn_pin = Some(func)
         }
         if let Ok(func) = unpin {
-            self.fn_unpin = Some(func.clone())
+            self.fn_unpin = Some(func)
         }
         if let Ok(func) = collect {
-            self.fn_collect = Some(func.clone())
+            self.fn_collect = Some(func)
         }
-        self.memory.initialize(mem.clone());
+        self.memory.initialize(mem);
         Ok(())
     }
 }
