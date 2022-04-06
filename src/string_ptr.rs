@@ -80,7 +80,7 @@ impl Write<String> for StringPtr {
             Ok(Box::new(*self))
         } else {
             // unpin old ptr
-            let unpin = export_asr!(fn_pin, env);
+            let unpin = export_asr!(fn_unpin, env);
             unpin.call(&[Value::I32(self.offset().try_into()?)])?;
 
             // collect
